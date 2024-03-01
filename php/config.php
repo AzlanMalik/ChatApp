@@ -1,8 +1,8 @@
 <?php
-  $hostname = "localhost";
-  $username = "root";
-  $password = "";
-  $dbname = "chatapp";
+  $hostname = "db";
+  $username = "php_docker";
+  $password = "password";
+  $dbname = "php_docker";
 
   $conn = mysqli_connect($hostname, $username, $password, $dbname);
   if(!$conn){
