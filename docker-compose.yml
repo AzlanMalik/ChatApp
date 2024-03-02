@@ -1,30 +1,21 @@
 version: '3'
 services:
   db: 
-    image: mysql:latest
+    build: 
+      dockerfile: Dockerfile.db
     env_file:
       - .env
-    environment:
-      - MYSQL_DATABASE=${MYSQL_DATABASE}
-      - MYSQL_USER=${MYSQL_USER}
-      - MYSQL_PASSWORD=${MYSQL_PASSWORD} 
-      - MYSQL_ALLOW_EMPTY_PASSWORD=1 # equivalent to True
-    volumes:
-      - "./db:/docker-entrypoint-initdb.d" # this is how we persist a sql db even when container stops
   www:
-    image: php:apache
-    command: >
-      /bin/sh -c "docker-php-ext-install mysqli &&
-      apachectl -D FOREGROUND"
-    volumes:
-      - "./:/var/www/html" # sync the current dir on local machine to the dir of container
+    build: 
+      dockerfile: Dockerfile.app
     ports:
       - "127.0.0.1:80:80" # Bind to 127.0.0.1 instead of all interfaces
-      - "127.0.0.1:443:443" # for future ssl traffic
-  phpmyadmin:
-    image: phpmyadmin/phpmyadmin
-    ports:
-      - 8001:80
-    environment:
-      - PMA_HOST=db
-      - PMA_PORT=3306
+
+# # Optional for accessing the database visually
+#   phpmyadmin:
+#     image: phpmyadmin/phpmyadmin
+#     ports:
+#       - 8001:80
+#     environment:
+#       - PMA_HOST=db
+#       - PMA_PORT=3306
