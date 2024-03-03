@@ -13,7 +13,7 @@ jobs:
       - run: 
           name: echo "adding password"
           command: echo "MYSQL_PASSWORD=$MYSQL_PASSWORD" >> .env
-                   cat .env
+      -run: cat .env
                   
 
 # Orchestrate our job run sequence
