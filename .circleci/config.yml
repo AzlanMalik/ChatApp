@@ -8,8 +8,7 @@ jobs:
     steps:
       - checkout
       - run: echo "cloned the repo"
-      - run: pwd
-      - run: cd ChatApp
+      - run: ls
       - run: cp .env.example .env
       - run: cat .env
 
