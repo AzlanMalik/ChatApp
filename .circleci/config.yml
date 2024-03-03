@@ -8,12 +8,13 @@ jobs:
     steps:
       - checkout
       - run: echo "cloned the repo"
+      - run: pwd
       - run: cd ChatApp
       - run: cp .env.example .env
       - run: cat .env
 
 # Orchestrate our job run sequence
 workflows:
-  build_and_test:
+  testing-config:
     jobs:
       - build
