@@ -19,6 +19,9 @@ jobs:
             echo "MYSQL_PASSWORD=$MYSQL_PASSWORD" >> .env
       - run: cat .env
 
+
+
+
 # Orchestrate our job run sequence
 workflows:
   testing-config:
