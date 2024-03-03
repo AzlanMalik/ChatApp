@@ -9,12 +9,15 @@ jobs:
       - checkout
       - run:
           name: echo "cloned the repo"
-          command: cp .env.example .env
-      - run: 
+          command: touch .env
+      - run:
           name: echo "adding password"
-          command: echo "MYSQL_PASSWORD=$MYSQL_PASSWORD" >> .env
+          command: |
+            echo "MYSQL_HOST=$MYSQL_HOST" >> .env
+            echo "MYSQL_DATABASE=$MYSQL_DATABASE" >> .env
+            echo "MYSQL_USER=$MYSQL_USER" >> .env
+            echo "MYSQL_PASSWORD=$MYSQL_PASSWORD" >> .env
       - run: cat .env
-                  
 
 # Orchestrate our job run sequence
 workflows:
