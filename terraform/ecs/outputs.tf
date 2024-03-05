@@ -1,3 +1,3 @@
-output "hostname" {
-  value = aws_s3_bucket.example.bucket
+output "lb_hostname" {
+  value = "www.azlanmalik.tech"
 }
