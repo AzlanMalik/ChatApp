@@ -1,2 +1,3 @@
 /terraform/ecs/*terraform*
+terraform*
 *.env
