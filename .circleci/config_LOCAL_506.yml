@@ -144,7 +144,7 @@ jobs:
           name: Get Terraform Output
           command: |
             cd ./terraform/ecs
-            echo $(terraform output lb-url) >> target-url
+            echo $(terraform output lb_hostname) >> target-url
       - run: rm -rf ./terraform/ecs/.terraform
       - persist_to_workspace:
           root: ./terraform

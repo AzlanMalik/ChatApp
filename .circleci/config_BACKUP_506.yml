@@ -144,7 +144,11 @@ jobs:
           name: Get Terraform Output
           command: |
             cd ./terraform/ecs
+<<<<<<< HEAD
+            echo $(terraform output lb_hostname) >> target-url
+=======
             echo $(terraform output lb-url) >> target-url
+>>>>>>> terraform
       - run: rm -rf ./terraform/ecs/.terraform
       - persist_to_workspace:
           root: ./terraform
@@ -161,7 +165,14 @@ jobs:
       - run:
           command: |
             mkdir /zap/wrk
+<<<<<<< HEAD
             zap-full-scan.py -t http://$(cat ./terraform/ecs/target-url | tr -d '"') -r report.html || true
+=======
+            echo "http://$(cat ./terraform/ecs/target-url)"
+            zap-full-scan.py -t http://$(cat ./terraform/ecs/target-url | tr -d '"') -x report.html || true
+      - store_test_results:
+          path: /zap/wrk
+>>>>>>> terraform
       - store_artifacts:
           path: /zap/wrk
           destination: zap-report
@@ -182,7 +193,11 @@ jobs:
           path: ./terraform/ecs
   deploy_to_ecs: # pending
     docker:
+<<<<<<< HEAD
       - image: alpine:latest
+=======
+      - image: owasp/zap2docker-bare
+>>>>>>> terraform
     resource_class: small
     steps:
       - run: echo "deployed to ecs  "

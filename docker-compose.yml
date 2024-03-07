@@ -9,7 +9,7 @@ services:
     build: 
       dockerfile: Dockerfile.app
     ports:
-      - "127.0.0.1:80:80" # Bind to 127.0.0.1 instead of all interfaces
+      - "127.0.0.1:80:80"
 
 # # Optional for accessing the database visually
 #   phpmyadmin:

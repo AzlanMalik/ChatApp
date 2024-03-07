@@ -151,7 +151,7 @@ jobs:
           paths:
             - "*"
       - run: sleep 1
-  dast_testing: 
+  dast_testing: # pending
     docker:
       - image: owasp/zap2docker-stable
     resource_class: small
@@ -161,7 +161,10 @@ jobs:
       - run:
           command: |
             mkdir /zap/wrk
-            zap-full-scan.py -t http://$(cat ./terraform/ecs/target-url | tr -d '"') -r report.html || true
+            echo "http://$(cat ./terraform/ecs/target-url)"
+            zap-full-scan.py -t http://$(cat ./terraform/ecs/target-url | tr -d '"') -x report.html || true
+      - store_test_results:
+          path: /zap/wrk
       - store_artifacts:
           path: /zap/wrk
           destination: zap-report
@@ -182,7 +185,7 @@ jobs:
           path: ./terraform/ecs
   deploy_to_ecs: # pending
     docker:
-      - image: alpine:latest
+      - image: owasp/zap2docker-bare
     resource_class: small
     steps:
       - run: echo "deployed to ecs  "

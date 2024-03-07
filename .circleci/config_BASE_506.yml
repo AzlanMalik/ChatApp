@@ -23,20 +23,18 @@ workflows:
       #     requires:
       #       - build_scan_push_database_docker_image
       - dast_deployment
-        # requires:
-        #   - build_scan_push_application_docker_image
+          # requires:
+          #   - build_scan_push_application_docker_image
       - dast_testing:
-          requires:
+          requires: 
             - dast_deployment
-      # - approve_destroy:
-      #     type: approval
-      #     requires:
-      #       - dast_testing
-      - destroy_dast_deployment:
+      - approve_destroy:
+          type: approval
           requires:
             - dast_testing
-          # requires:
-          #   - approve_destroy
+      - destroy_dast_deployment:
+          requires:
+            - approve_destroy
       - approve_prod_deployment:
           type: approval
           requires:
@@ -45,8 +43,9 @@ workflows:
           # filters:
           #   - branches:
           #       only: main
-          requires:
+          requires: 
             - approve_prod_deployment
+          
 
 # ---------------------------------------------------------------------------- #
 #                                     JOBS                                     #
@@ -55,7 +54,6 @@ jobs:
   scan_app:
     docker:
       - image: cimg/php:8.3.3 # change this container image
-    resource_class: small
     steps:
       - checkout
       - snyk/scan:
@@ -128,62 +126,47 @@ jobs:
   dast_deployment:
     docker:
       - image: cimg/base:stable
-    resource_class: small
     steps:
       - checkout
       - terraform/install:
-          os: linux
+          os: linux 
           arch: amd64
       - terraform/init:
-          path: ./terraform/ecs
+          path: ./terraform/ecs 
       - terraform/plan:
           path: ./terraform/ecs
       - terraform/apply:
-          path: ./terraform/ecs
-      - run:
-          name: Get Terraform Output
-          command: |
-            cd ./terraform/ecs
-            echo $(terraform output lb-url) >> target-url
-      - run: rm -rf ./terraform/ecs/.terraform
+          path: ./terraform/ecs 
       - persist_to_workspace:
           root: ./terraform
           paths:
             - "*"
+      - run: 
+          name: exporting the hostname of loadbalancer
+          command: export ENDPOINT="$(terraform -chdir=./terraform/ecs output hostname)"
+      - run: echo $ENDPOINT
       - run: sleep 1
-  dast_testing: 
+  dast_testing: # pending
     docker:
-      - image: owasp/zap2docker-stable
-    resource_class: small
+      - image: cimg/base:stable
     steps:
-      - attach_workspace:
-          at: terraform
-      - run:
-          command: |
-            mkdir /zap/wrk
-            zap-full-scan.py -t http://$(cat ./terraform/ecs/target-url | tr -d '"') -r report.html || true
-      - store_artifacts:
-          path: /zap/wrk
-          destination: zap-report
+      - run: echo "will do testing soon"
   destroy_dast_deployment:
     docker:
       - image: cimg/base:stable
-    resource_class: small
     steps:
       - attach_workspace:
           at: terraform
       - terraform/install:
-          os: linux
+          os: linux 
           arch: amd64
       - run: ls
-      - terraform/init:
-          path: ./terraform/ecs
       - terraform/destroy:
           path: ./terraform/ecs
   deploy_to_ecs: # pending
     docker:
-      - image: alpine:latest
-    resource_class: small
+      - image: cimg/base:stable
     steps:
       - run: echo "deployed to ecs  "
-# aws s3api delete-bucket --bucket my-circleci-test-bucket-12548624 --region me-central-1
+    
+
