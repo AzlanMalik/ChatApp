@@ -23,7 +23,7 @@ resource "aws_vpc" "my-vpc" {
 
 resource "aws_security_group" "my-security-group" {
  name        = "${var.app-name}-sg"
- description = "${var.environment} security group"
+ description = "${var.app-name} ${var.environment} security group"
  vpc_id      = aws_vpc.my-vpc.id
 
  ingress {
@@ -169,7 +169,7 @@ resource "aws_route_table_association" "private-association" {
 /*                         APPLICATION LOAD BALANCER                          */
 /* -------------------------------------------------------------------------- */
 resource "aws_lb" "my-application-load-balancer" {
- name               = "${var.app-name}-lb"
+ name               = "${var.app-name}-${var.environment}-lb"
  internal           = false
  load_balancer_type = "application"
  security_groups    = [aws_security_group.my-security-group.id]
@@ -177,7 +177,7 @@ resource "aws_lb" "my-application-load-balancer" {
 }
 
 resource "aws_lb_target_group" "my-alb-target-group" {
-  name        = "${var.app-name}-alb-tg"
+  name        = "${var.app-name}-${var.environment}-alb-tg"
   target_type = "ip"
   port        = 80
   protocol    = "HTTP"

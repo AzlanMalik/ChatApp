@@ -1,20 +1,87 @@
-variable "ecs-cloudwatch" {
-  default = "chatapp-ecs-cloudwatch-logs"
+/* -------------------------------------------------------------------------- */
+/*                                  VARIABLES                                 */
+/* -------------------------------------------------------------------------- */
+
+# Create a terraform.tfvars file for keeping credentials secure
+variable "aws-access-key" {
+  description = "Provide the AWS Access Key that you generated"  
+}
+
+variable "aws-secret-key" {
+  sensitive = true
+  description = "Provide the AWS Secret Key that you generated"
+}
+
+variable "aws-region" {
+  sensitive = true
+  description = "Provide the AWS Region" 
 }
 
 variable "app-name" {
-  default = "chatapp"
-}
-
-
-variable "aws-region" {
-  default = "me-central-1"
+  description = "Add your project name here"
 }
 
 variable "environment" {
-  default = "chatapp"
+  description = "provide environment name such as Dev/Staging/Prod"
 }
 
+/* -------------------------------------------------------------------------- */
+/*                           APP - SERVICE VARIABLES                          */
+/* -------------------------------------------------------------------------- */
+variable "app-cpu" {
+  type = number
+  description = "APP service CPU allocated to each container - 1cpu = 1024"
+  default= 512
+}
+
+variable "app-memory" {
+  type = number
+  description = "APP service RAM/Memory allocated to each container - 1GB Memory = 1024"
+  default = 1024
+}
+
+variable "app-max-capacity" {
+  type = number
+  description = "Maximum Containers limit when the APP service is Scaling Up"
+  default = 2
+}
+
+variable "app-min-capacity" {
+  type = number
+  description = "Mininmum Containers limit when the APP service is Scaling Down or Desired Number of Container when idle"
+  default = 2
+}
+
+/* -------------------------------------------------------------------------- */
+/*                           DB - SERVICE VARIABLES                           */
+/* -------------------------------------------------------------------------- */
+variable "db-cpu" {
+  type = number
+  description = "DB service CPU allocated to each container - 1cpu = 1024"
+  default= 512
+}
+
+variable "db-memory" {
+  type = number
+  description = "DB service RAM/Memory allocated to each container - 1GB Memory = 1024"
+  default = 1024
+}
+
+variable "db-max-capacity" {
+  type = number
+  description = "Maximum Containers limit when the DB service is Scaling Up"
+  default = 1
+}
+
+variable "db-min-capacity" {
+  type = number
+  description = "Mininmum Containers limit when the DB service is Scaling Down or Desired Number of Container when idle"
+  default = 1
+}
+
+/* -------------------------------------------------------------------------- */
+/*                              NETWORK VARIABLES                             */
+/* -------------------------------------------------------------------------- */
 variable "vpc-cidr" {
   default     = "10.0.0.0/16"
   description = "CIDR block of the vpc"
@@ -32,41 +99,3 @@ variable "private-subnets-cidr" {
   description = "CIDR block for Private Subnet"
 }
 
-
-/* -------------------------------------------------------------------------- */
-/*                           APP - SERVICE VARIABLES                          */
-/* -------------------------------------------------------------------------- */
-variable "app-cpu" {
-  default= 512
-}
-
-variable "app-memory" {
-  default = 1024
-}
-
-variable "app-max-capacity" {
-  default = 2
-}
-
-variable "app-min-capacity" {
-  default = 2
-}
-
-/* -------------------------------------------------------------------------- */
-/*                           DB - SERVICE VARIABLES                           */
-/* -------------------------------------------------------------------------- */
-variable "db-cpu" {
-  default= 512
-}
-
-variable "db-memory" {
-  default = 1024
-}
-
-variable "db-max-capacity" {
-  default = 1
-}
-
-variable "db-min-capacity" {
-  default = 1
-}

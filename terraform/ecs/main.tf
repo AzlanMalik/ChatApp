@@ -2,7 +2,7 @@
 /*                                 ECS CLUSTER                                */
 /* -------------------------------------------------------------------------- */
 resource "aws_ecs_cluster" "my-ecs-cluster" {
-  name = "${var.app-name}-cluster"
+  name = "${var.app-name}-${var.environment}-cluster"
 
   setting {
     name  = "containerInsights"
@@ -27,7 +27,7 @@ resource "aws_cloudwatch_log_group" "log-group" {
 /* -------------------------------------------------------------------------- */
 
 resource "aws_ecs_task_definition" "my-ecs-task-app" {
-  family                   = "${var.app-name}-app-family"
+  family                   = "${var.app-name}-app-${var.environment}"
   requires_compatibilities = ["FARGATE"]
   network_mode             = "awsvpc"
   cpu                      = var.app-cpu
@@ -74,7 +74,7 @@ TASK_DEFINITION
 /* -------------------------------------------------------------------------- */
 
 resource "aws_ecs_task_definition" "my-ecs-task-db" {
-  family                   = "${var.app-name}-db-family"
+  family                   = "${var.app-name}-db-${var.environment}"
   requires_compatibilities = ["FARGATE"]
   network_mode             = "awsvpc"
   cpu                      = var.db-cpu
@@ -120,7 +120,7 @@ TASK_DEFINITION
 
 
 resource "aws_iam_role" "ecs-task-execution-role" {
-  name = "${var.app-name}-ecsTaskExecutionRole"
+  name = "${var.app-name}-${var.environment}-ecsTaskExecutionRole"
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
