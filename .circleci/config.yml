@@ -34,7 +34,7 @@ workflows:
       - approve_destroy:
           type: approval
           requires:
-            - sast_scan
+            - dast_deployment
       - destroy_dast_deployment:
           requires:
             - approve_destroy
@@ -124,9 +124,6 @@ jobs:
     #working_directory: /mnt/ramdisk
     steps:
       - checkout
-      # - run: 
-      #     name: Removing ecr.tf file so It does not get created in Testing Environment
-      #     command: rm ./terraform/ecs/ecr.tf
       - terraform/install:
           os: linux
           arch: amd64
@@ -134,30 +131,18 @@ jobs:
           path: ./terraform/ecs
       - terraform/plan:
           var: app-name=$APP_NAME, environment=$ENVIRONMENT, aws-region=$AWS_DEFAULT_REGION, aws-access-key=$AWS_ACCESS_KEY_ID, aws-secret-key=$AWS_SECRET_ACCESS_KEY, db-ecr-url=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$AWS_ECR_REPO:$AWS_ECR_REPO-db-v-<< pipeline.number >>, app-ecr-url=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$AWS_ECR_REPO:$AWS_ECR_REPO-app-v-<< pipeline.number >>
-          workspace: testing 
+          workspace: $ENVIRONMENT 
           path: ./terraform/ecs
       - terraform/apply:
           var: app-name=$APP_NAME, environment=$ENVIRONMENT, aws-region=$AWS_DEFAULT_REGION, aws-access-key=$AWS_ACCESS_KEY_ID, aws-secret-key=$AWS_SECRET_ACCESS_KEY, db-ecr-url=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$AWS_ECR_REPO:$AWS_ECR_REPO-db-v-<< pipeline.number >>, app-ecr-url=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$AWS_ECR_REPO:$AWS_ECR_REPO-app-v-<< pipeline.number >>
-          workspace: testing 
+          workspace: $ENVIRONMENT 
           path: ./terraform/ecs
-      - run:
-          name: Get APP URL From Terraform Output
-          command: |
-            echo $(terraform output lb-url) >> target-url
-      - run: 
-          name: "Removing the .terraform Folder to reduce the size of Persistance Storage"
-          command: rm -rf ./terraform/ecs/.terraform
-      - persist_to_workspace:
-          root: ./terraform
-          paths:
-            - "*"
   dast_testing: 
     docker:
       - image: owasp/zap2docker-stable
     resource_class: medium
     steps:
-      - attach_workspace:
-          at: terraform
+      - checkout
       - run:
           command: |
             mkdir /zap/wrk
@@ -170,8 +155,7 @@ jobs:
       - image: cimg/base:current
     resource_class: medium
     steps:
-      - attach_workspace:
-          at: terraform
+      - checkout
       - terraform/install:
           os: linux
           arch: amd64
@@ -179,9 +163,9 @@ jobs:
           path: ./terraform/ecs
       - terraform/destroy:
           var: app-name=$APP_NAME, environment=$ENVIRONMENT, aws-region=$AWS_DEFAULT_REGION, aws-access-key=$AWS_ACCESS_KEY_ID, aws-secret-key=$AWS_SECRET_ACCESS_KEY, db-ecr-url=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$AWS_ECR_REPO:$AWS_ECR_REPO-db-v-<< pipeline.number >>, app-ecr-url=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$AWS_ECR_REPO:$AWS_ECR_REPO-app-v-<< pipeline.number >>
-          workspace: testing
+          workspace: $ENVIRONMENT
           path: ./terraform/ecs
-  deploy_to_ecs: # pending
+  deploy_to_ecs:
     docker:
       - image: cimg/base:current
     resource_class: medium
