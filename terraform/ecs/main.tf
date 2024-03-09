@@ -167,6 +167,11 @@ resource "aws_ecs_service" "ecs-service-app" {
     ]
   }
 
+  service_connect_configuration {
+    enabled = true
+    namespace = aws_service_discovery_http_namespace.namespace.arn
+  }
+
   load_balancer {
     target_group_arn = aws_lb_target_group.my-alb-target-group.arn
     container_name   = "app"
@@ -193,5 +198,22 @@ resource "aws_ecs_service" "ecs-service-db" {
       aws_security_group.my-security-group.id
     ]
   }
+
+  service_connect_configuration {
+    enabled = true
+    namespace = aws_service_discovery_http_namespace.namespace.arn
+    service {
+      client_alias {
+        dns_name = "db"
+        port     = "3306"
+      }
+      discovery_name = "db"
+      port_name      = "db-port"
+    }
+  }
 }
 
+/* ------------------------ SERVICE CONNECT NAMESPACE ----------------------- */
+resource "aws_service_discovery_http_namespace" "namespace" {
+  name        = "${var.app-name}-${var.environment}-namespace"
+}
