@@ -34,7 +34,7 @@ workflows:
       - approve_destroy:
           type: approval
           requires:
-            - dast_testing
+            - dast_deployment
       - destroy_dast_deployment:
           requires:
             - approve_destroy
@@ -66,12 +66,15 @@ jobs:
           no-cache: true 
           severity-threshold: high 
   build_scan_push_db_docker_image:
-    docker:
-      image: cimg/base:current
+    machine:
+      image: ubuntu-2204:current
     resource_class: medium
     steps:
       - checkout
-      - aws-ecr/build_image:
+      - aws-ecr/build_and_push_image:
+          auth:
+            - aws-cli/setup:
+                role_arn: $ECR_ROLE_ARN
           repo: $AWS_ECR_REPO 
           push_image: false  
           dockerfile: Dockerfile.db
@@ -87,8 +90,8 @@ jobs:
           repo: $AWS_ECR_REPO
           tag: $AWS_ECR_REPO-db-v<< pipeline.number >>
   build_scan_push_app_docker_image:
-    docker:
-      image: cimg/base:current
+    machine:
+      image: ubuntu-2204:current
     resource_class: medium
     steps:
       - checkout
@@ -99,7 +102,10 @@ jobs:
             echo "MYSQL_DATABASE=$MYSQL_DATABASE" >> .env
             echo "MYSQL_USER=$MYSQL_USER" >> .env
             echo "MYSQL_PASSWORD=$MYSQL_PASSWORD" >> .env
-      - aws-ecr/build_image:
+      - aws-ecr/build_and_push_image:
+          auth:
+            - aws-cli/setup:
+                role_arn: $ECR_ROLE_ARN
           repo: $AWS_ECR_REPO 
           push_image: false  
           dockerfile: Dockerfile.app
@@ -114,44 +120,46 @@ jobs:
           repo: $AWS_ECR_REPO
           tag: $AWS_ECR_REPO-app-v<< pipeline.number >>
   dast_deployment:
-    working_directory: ./terraform/ecs
     docker:
       - image: cimg/base:current
     resource_class: medium
+    #working_directory: /mnt/ramdisk
     steps:
       - checkout
-      - run: 
-        name: Removing ecr.tf file so It does not get created in Testing Environment
-        command: rm ecr.tf
+      # - run: 
+      #     name: Removing ecr.tf file so It does not get created in Testing Environment
+      #     command: rm ./terraform/ecs/ecr.tf
       - terraform/install:
           os: linux
           arch: amd64
       - terraform/init:
-          path: .
+          path: ./terraform/ecs
       - terraform/plan:
-          path: .
+          var: app-name=$APP_NAME, environment=$ENVIRONMENT, aws-region=$AWS_DEFAULT_REGION, aws-access-key=$AWS_ACCESS_KEY_ID, aws-secret-key=$AWS_SECRET_ACCESS_KEY, db-ecr-url=$ACCOUNT_URL.dkr.ecr.$AWS_REGION.amazonaws.com/$AWS_ECR_REPO:$AWS_ECR_REPO-db-v-<< pipeline.number >>, app-ecr-url=$ACCOUNT_URL.dkr.ecr.$AWS_REGION.amazonaws.com/$AWS_ECR_REPO:$AWS_ECR_REPO-app-v-<< pipeline.number >>
+          workspace: testing 
+          path: ./terraform/ecs
       - terraform/apply:
-          var: 'app-name=$APP_NAME, environment=$ENVIRONMENT'
-          path: .
+          var: app-name=$APP_NAME, environment=$ENVIRONMENT, aws-region=$AWS_DEFAULT_REGION, aws-access-key=$AWS_ACCESS_KEY_ID, aws-secret-key=$AWS_SECRET_ACCESS_KEY, db-ecr-url=$ACCOUNT_URL.dkr.ecr.$AWS_REGION.amazonaws.com/$AWS_ECR_REPO:$AWS_ECR_REPO-db-v-<< pipeline.number >>, app-ecr-url=$ACCOUNT_URL.dkr.ecr.$AWS_REGION.amazonaws.com/$AWS_ECR_REPO:$AWS_ECR_REPO-app-v-<< pipeline.number >>
+          workspace: testing 
+          path: ./terraform/ecs
       - run:
           name: Get APP URL From Terraform Output
           command: |
             echo $(terraform output lb-url) >> target-url
       - run: 
-          name: Removing the .terraform Folder to reduce the size of Persistance Storage
-          command: rm -rf .terraform
+          name: "Removing the .terraform Folder to reduce the size of Persistance Storage"
+          command: rm -rf ./terraform/ecs/.terraform
       - persist_to_workspace:
-          root: .
+          root: ./terraform
           paths:
             - "*"
-      - run: sleep 1 #Sleep if needed
   dast_testing: 
     docker:
       - image: owasp/zap2docker-stable
     resource_class: medium
     steps:
       - attach_workspace:
-          at: .
+          at: terraform
       - run:
           command: |
             mkdir /zap/wrk
@@ -165,22 +173,28 @@ jobs:
     resource_class: medium
     steps:
       - attach_workspace:
-          at: .
+          at: terraform
       - terraform/install:
           os: linux
           arch: amd64
       - terraform/init:
-          path: .
+          path: ./terraform/ecs
       - terraform/destroy:
-          path: .
+          var: app-name=$APP_NAME, environment=$ENVIRONMENT, aws-region=$AWS_DEFAULT_REGION, aws-access-key=$AWS_ACCESS_KEY_ID, aws-secret-key=$AWS_SECRET_ACCESS_KEY, db-ecr-url=$ACCOUNT_URL.dkr.ecr.$AWS_REGION.amazonaws.com/$AWS_ECR_REPO:$AWS_ECR_REPO-db-v-<< pipeline.number >>, app-ecr-url=$ACCOUNT_URL.dkr.ecr.$AWS_REGION.amazonaws.com/$AWS_ECR_REPO:$AWS_ECR_REPO-app-v-<< pipeline.number >>
+          workspace: testing
+          path: ./terraform/ecs
   deploy_to_ecs: # pending
     docker:
-      - image: alpine:latest
-    resource_class: small
+      - image: cimg/base:current
+    resource_class: medium
     steps:
-       - aws-ecs/update_service:
-          cluster: arn
-          family: place_holder 
+      - aws-ecs/update_service:
+          cluster: "${APP-NAME}-${ENVIRONMENT}-cluster"
+          family: "${APP-NAME}-${ENVIRONMENT}-db"
           force_new_deployment: true 
-          service_name: place_holder 
-          container_image_name_updates: place_holder 
+          container_image_name_updates: $ACCOUNT_URL.dkr.ecr.$AWS_REGION.amazonaws.com/$AWS_ECR_REPO:$AWS_ECR_REPO-db-v-<< pipeline.number >>
+      - aws-ecs/update_service:
+          cluster: "${APP-NAME}-${ENVIRONMENT}-cluster"
+          family: "${APP-NAME}-${ENVIRONMENT}-app"
+          force_new_deployment: true 
+          container_image_name_updates:  $ACCOUNT_URL.dkr.ecr.$AWS_REGION.amazonaws.com/$AWS_ECR_REPO:$AWS_ECR_REPO-app-v-<< pipeline.number >>

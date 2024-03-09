@@ -1,3 +1,9 @@
+# Conditional Statement for Prod and Testing/Staging environment DB and App image urls
+locals {
+  db-image = var.environment == "prod" ? "${aws_ecr_repository.my-ecr-repo[0].repository_url}:${var.app-name}-app-v1" : var.app-ecr-url
+  app-image = var.environment == "prod" ? "${aws_ecr_repository.my-ecr-repo[0].repository_url}:${var.app-name}-db-v1" : var.app-ecr-url
+}
+
 /* -------------------------------------------------------------------------- */
 /*                                 ECS CLUSTER                                */
 /* -------------------------------------------------------------------------- */
@@ -27,7 +33,7 @@ resource "aws_cloudwatch_log_group" "log-group" {
 /* -------------------------------------------------------------------------- */
 
 resource "aws_ecs_task_definition" "my-ecs-task-app" {
-  family                   = "${var.app-name}-app-${var.environment}"
+  family                   = "${var.app-name}-${var.environment}-app"
   requires_compatibilities = ["FARGATE"]
   network_mode             = "awsvpc"
   cpu                      = var.app-cpu
@@ -38,7 +44,7 @@ resource "aws_ecs_task_definition" "my-ecs-task-app" {
 [
   {
     "name": "app",
-    "image": "${aws_ecr_repository.my-ecr-repo.repository_url}:${var.app-name}-app-v1",
+    "image": "${local.app-image}", 
     "cpu": ${var.app-cpu},
     "memory": ${var.app-memory},
     "essential": true,
@@ -74,7 +80,7 @@ TASK_DEFINITION
 /* -------------------------------------------------------------------------- */
 
 resource "aws_ecs_task_definition" "my-ecs-task-db" {
-  family                   = "${var.app-name}-db-${var.environment}"
+  family                   = "${var.app-name}-${var.environment}-db"
   requires_compatibilities = ["FARGATE"]
   network_mode             = "awsvpc"
   cpu                      = var.db-cpu
@@ -85,7 +91,7 @@ resource "aws_ecs_task_definition" "my-ecs-task-db" {
 [
   {
     "name": "db",
-    "image": "${aws_ecr_repository.my-ecr-repo.repository_url}:${var.app-name}-db-v1",
+    "image": "${local.db-image}", 
     "cpu": ${var.db-cpu},
     "memory": ${var.db-memory},
     "essential": true,
@@ -145,7 +151,7 @@ resource "aws_iam_role_policy_attachment" "ecs-task-execution-role-policy" {
 /*                                 ECS SERVICE                                */
 /* -------------------------------------------------------------------------- */
 resource "aws_ecs_service" "ecs-service-app" {
-  name                 = "${var.app-name}-app-service"
+  name                 = "app"
   cluster              = aws_ecs_cluster.my-ecs-cluster.id
   task_definition      = aws_ecs_task_definition.my-ecs-task-app.id
   launch_type          = "FARGATE"
@@ -172,7 +178,7 @@ resource "aws_ecs_service" "ecs-service-app" {
 
 /* ------------------------------- DB SERVICE ------------------------------- */
 resource "aws_ecs_service" "ecs-service-db" {
-  name                 = "${var.app-name}-db-service"
+  name                 = "db"
   cluster              = aws_ecs_cluster.my-ecs-cluster.id
   task_definition      = aws_ecs_task_definition.my-ecs-task-db.id
   launch_type          = "FARGATE"

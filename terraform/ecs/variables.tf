@@ -25,6 +25,21 @@ variable "environment" {
   description = "provide environment name such as Dev/Staging/Prod"
 }
 
+/* --------- For Testing Environment/ Updating the Image of Services -------- */
+# Keep them default for the first time
+variable "db-ecr-url" {
+  type = string
+  default = "mysql:latest"
+  description = "ECR DB Docker Image URl for Testing/Staging in CI"
+}
+
+variable "app-ecr-url" {
+  type = string
+  default = "php:apache"
+  description = "ECR APP Docker Image URL for Testing/Staging in CI"
+}
+
+
 /* -------------------------------------------------------------------------- */
 /*                           APP - SERVICE VARIABLES                          */
 /* -------------------------------------------------------------------------- */

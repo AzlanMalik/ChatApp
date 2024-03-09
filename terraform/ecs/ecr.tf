@@ -6,6 +6,7 @@
 /*                                     ECR                                    */
 /* -------------------------------------------------------------------------- */
 resource "aws_ecr_repository" "my-ecr-repo" {
+  count = var.environment == "prod" ? 1 : 0
   name                 = "${var.app-name}"
   image_tag_mutability = "MUTABLE"
 
