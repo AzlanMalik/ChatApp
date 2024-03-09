@@ -45,10 +45,10 @@ workflows:
               - build_scan_push_db_docker_image
           # requires:
           #   - destroy_dast_deployment
-          filters:
-            branches:
-              only: 
-                - main
+          # filters:
+          #   branches:
+          #     only: 
+          #       - main
       - deploy_to_ecs:
           requires:
             - approve_prod_deployment
@@ -76,15 +76,14 @@ jobs:
       - checkout
       - aws-ecr/build_and_push_image:
           auth:
-            - aws-cli/setup:
-                role_arn: $ECR_ROLE_ARN
+            - aws-cli/setup
           repo: $AWS_ECR_REPO 
           push_image: false  
           dockerfile: Dockerfile.db
           extra_build_args: '--build-arg MYSQL_DATABASE=$MYSQL_DATABASE --build-arg MYSQL_USER=$MYSQL_USER --build-arg MYSQL_PASSWORD=$MYSQL_PASSWORD'
           tag: $AWS_ECR_REPO-db-v<<pipeline.number>>
       - snyk/scan: #save test files
-          docker-image-name: $ACCOUNT_URL.dkr.ecr.$AWS_REGION.amazonaws.com/$AWS_ECR_REPO:$AWS_ECR_REPO-db-v-<< pipeline.number >>
+          docker-image-name: $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$AWS_ECR_REPO:$AWS_ECR_REPO-db-v-<< pipeline.number >>
           fail-on-issues: false
           monitor-on-build: false 
           no-cache: true 
@@ -107,14 +106,13 @@ jobs:
             echo "MYSQL_PASSWORD=$MYSQL_PASSWORD" >> .env
       - aws-ecr/build_and_push_image:
           auth:
-            - aws-cli/setup:
-                role_arn: $ECR_ROLE_ARN
+            - aws-cli/setup
           repo: $AWS_ECR_REPO 
           push_image: false  
           dockerfile: Dockerfile.app
           tag: $AWS_ECR_REPO-app-v<<pipeline.number>>
       - snyk/scan: #save test files
-          docker-image-name: $ACCOUNT_URL.dkr.ecr.$AWS_REGION.amazonaws.com/$AWS_ECR_REPO:$AWS_ECR_REPO-app-v-<< pipeline.number >>
+          docker-image-name: $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$AWS_ECR_REPO:$AWS_ECR_REPO-app-v-<< pipeline.number >>
           fail-on-issues: false
           monitor-on-build: false 
           no-cache: true 
@@ -138,11 +136,11 @@ jobs:
       - terraform/init:
           path: ./terraform/ecs
       - terraform/plan:
-          var: app-name=$APP_NAME, environment=$ENVIRONMENT, aws-region=$AWS_DEFAULT_REGION, aws-access-key=$AWS_ACCESS_KEY_ID, aws-secret-key=$AWS_SECRET_ACCESS_KEY, db-ecr-url=$ACCOUNT_URL.dkr.ecr.$AWS_REGION.amazonaws.com/$AWS_ECR_REPO:$AWS_ECR_REPO-db-v-<< pipeline.number >>, app-ecr-url=$ACCOUNT_URL.dkr.ecr.$AWS_REGION.amazonaws.com/$AWS_ECR_REPO:$AWS_ECR_REPO-app-v-<< pipeline.number >>
+          var: app-name=$APP_NAME, environment=$ENVIRONMENT, aws-region=$AWS_DEFAULT_REGION, aws-access-key=$AWS_ACCESS_KEY_ID, aws-secret-key=$AWS_SECRET_ACCESS_KEY, db-ecr-url=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$AWS_ECR_REPO:$AWS_ECR_REPO-db-v-<< pipeline.number >>, app-ecr-url=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$AWS_ECR_REPO:$AWS_ECR_REPO-app-v-<< pipeline.number >>
           workspace: testing 
           path: ./terraform/ecs
       - terraform/apply:
-          var: app-name=$APP_NAME, environment=$ENVIRONMENT, aws-region=$AWS_DEFAULT_REGION, aws-access-key=$AWS_ACCESS_KEY_ID, aws-secret-key=$AWS_SECRET_ACCESS_KEY, db-ecr-url=$ACCOUNT_URL.dkr.ecr.$AWS_REGION.amazonaws.com/$AWS_ECR_REPO:$AWS_ECR_REPO-db-v-<< pipeline.number >>, app-ecr-url=$ACCOUNT_URL.dkr.ecr.$AWS_REGION.amazonaws.com/$AWS_ECR_REPO:$AWS_ECR_REPO-app-v-<< pipeline.number >>
+          var: app-name=$APP_NAME, environment=$ENVIRONMENT, aws-region=$AWS_DEFAULT_REGION, aws-access-key=$AWS_ACCESS_KEY_ID, aws-secret-key=$AWS_SECRET_ACCESS_KEY, db-ecr-url=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$AWS_ECR_REPO:$AWS_ECR_REPO-db-v-<< pipeline.number >>, app-ecr-url=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$AWS_ECR_REPO:$AWS_ECR_REPO-app-v-<< pipeline.number >>
           workspace: testing 
           path: ./terraform/ecs
       - run:
@@ -183,21 +181,24 @@ jobs:
       - terraform/init:
           path: ./terraform/ecs
       - terraform/destroy:
-          var: app-name=$APP_NAME, environment=$ENVIRONMENT, aws-region=$AWS_DEFAULT_REGION, aws-access-key=$AWS_ACCESS_KEY_ID, aws-secret-key=$AWS_SECRET_ACCESS_KEY, db-ecr-url=$ACCOUNT_URL.dkr.ecr.$AWS_REGION.amazonaws.com/$AWS_ECR_REPO:$AWS_ECR_REPO-db-v-<< pipeline.number >>, app-ecr-url=$ACCOUNT_URL.dkr.ecr.$AWS_REGION.amazonaws.com/$AWS_ECR_REPO:$AWS_ECR_REPO-app-v-<< pipeline.number >>
+          var: app-name=$APP_NAME, environment=$ENVIRONMENT, aws-region=$AWS_DEFAULT_REGION, aws-access-key=$AWS_ACCESS_KEY_ID, aws-secret-key=$AWS_SECRET_ACCESS_KEY, db-ecr-url=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$AWS_ECR_REPO:$AWS_ECR_REPO-db-v-<< pipeline.number >>, app-ecr-url=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$AWS_ECR_REPO:$AWS_ECR_REPO-app-v-<< pipeline.number >>
           workspace: testing
           path: ./terraform/ecs
   deploy_to_ecs: # pending
     docker:
-      - image: cimg/aws:2024.03
+      - image: cimg/base:current
     resource_class: medium
     steps:
+      - aws-cli/setup
       - aws-ecs/update_service:
-          cluster: "${APP-NAME}-${ENVIRONMENT}-cluster"
-          family: "${APP-NAME}-${ENVIRONMENT}-db"
+          cluster: "${APP_NAME}-prod-cluster"
+          family: "${APP_NAME}-prod-db"
+          service_name: "db"
           force_new_deployment: true 
-          container_image_name_updates: $ACCOUNT_URL.dkr.ecr.$AWS_REGION.amazonaws.com/$AWS_ECR_REPO:$AWS_ECR_REPO-db-v-<< pipeline.number >>
+          container_image_name_updates:  "container=db,image-and-tag=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$AWS_ECR_REPO:$AWS_ECR_REPO-db-v<< pipeline.number >>"
       - aws-ecs/update_service:
-          cluster: "${APP-NAME}-${ENVIRONMENT}-cluster"
-          family: "${APP-NAME}-${ENVIRONMENT}-app"
+          cluster: "${APP_NAME}-prod-cluster"
+          family: "${APP_NAME}-prod-app"
+          service_name: "app"
           force_new_deployment: true 
-          container_image_name_updates:  $ACCOUNT_URL.dkr.ecr.$AWS_REGION.amazonaws.com/$AWS_ECR_REPO:$AWS_ECR_REPO-app-v-<< pipeline.number >>
+          container_image_name_updates: "container=app,image-and-tag=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$AWS_ECR_REPO:$AWS_ECR_REPO-app-v<< pipeline.number >>"
