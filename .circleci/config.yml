@@ -23,32 +23,32 @@ workflows:
       - build_scan_push_app_docker_image:
           requires:
            - sast_scan
-      - dast_deployment:
-          requires:
-           - sast_scan
-      - dast_testing:
-          requires:
-            - dast_deployment
-            - build_scan_push_db_docker_image
-            - build_scan_push_app_docker_image
-      - approve_destroy:
-          type: approval
-          requires:
-            - dast_deployment
-      - destroy_dast_deployment:
-          requires:
-            - approve_destroy
-      - approve_prod_deployment:
-          type: approval
-          requires:
-            - destroy_dast_deployment
-          filters:
-            branches:
-              only: 
-                - main
-      - deploy_to_ecs:
-          requires:
-            - approve_prod_deployment
+      # - dast_deployment:
+      #     requires:
+      #      - sast_scan
+      # - dast_testing:
+      #     requires:
+      #       - dast_deployment
+      #       - build_scan_push_db_docker_image
+      #       - build_scan_push_app_docker_image
+      # - approve_destroy:
+      #     type: approval
+      #     requires:
+      #       - dast_deployment
+      # - destroy_dast_deployment:
+      #     requires:
+      #       - approve_destroy
+      # - approve_prod_deployment:
+      #     type: approval
+      #     requires:
+      #       - destroy_dast_deployment
+      #     filters:
+      #       branches:
+      #         only: 
+      #           - main
+      - deploy_to_ecs
+          # requires:
+          #   - approve_prod_deployment
 
 # ---------------------------------------------------------------------------- #
 #                                     JOBS                                     #
@@ -185,7 +185,7 @@ jobs:
           path: ./terraform/ecs
   deploy_to_ecs: # pending
     docker:
-      - image: cimg/base:current
+      - image: cimg/aws:2024.03
     resource_class: medium
     steps:
       - aws-ecs/update_service:
