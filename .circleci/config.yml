@@ -38,17 +38,20 @@ workflows:
       # - destroy_dast_deployment:
       #     requires:
       #       - approve_destroy
-      # - approve_prod_deployment:
-      #     type: approval
-      #     requires:
-      #       - destroy_dast_deployment
-      #     filters:
-      #       branches:
-      #         only: 
-      #           - main
-      - deploy_to_ecs
+      - approve_prod_deployment:
+          type: approval
+          requires:
+              - build_scan_push_app_docker_image
+              - build_scan_push_db_docker_image
           # requires:
-          #   - approve_prod_deployment
+          #   - destroy_dast_deployment
+          filters:
+            branches:
+              only: 
+                - main
+      - deploy_to_ecs:
+          requires:
+            - approve_prod_deployment
 
 # ---------------------------------------------------------------------------- #
 #                                     JOBS                                     #
