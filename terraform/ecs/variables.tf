@@ -4,17 +4,17 @@
 
 # Create a terraform.tfvars file for keeping credentials secure
 variable "aws-access-key" {
-  description = "Provide the AWS Access Key that you generated"  
+  description = "Provide the AWS Access Key that you generated"
 }
 
 variable "aws-secret-key" {
-  sensitive = true
+  sensitive   = true
   description = "Provide the AWS Secret Key that you generated"
 }
 
 variable "aws-region" {
-  sensitive = true
-  description = "Provide the AWS Region" 
+  sensitive   = true
+  description = "Provide the AWS Region"
 }
 
 variable "app-name" {
@@ -28,14 +28,14 @@ variable "environment" {
 /* --------- For Testing Environment/ Updating the Image of Services -------- */
 # Keep them default for the first time
 variable "db-ecr-url" {
-  type = string
-  default = "mysql:latest"
+  type        = string
+  default     = "mysql:latest"
   description = "ECR DB Docker Image URl for Testing/Staging in CI"
 }
 
 variable "app-ecr-url" {
-  type = string
-  default = "php:apache"
+  type        = string
+  default     = "php:apache"
   description = "ECR APP Docker Image URL for Testing/Staging in CI"
 }
 
@@ -44,54 +44,54 @@ variable "app-ecr-url" {
 /*                           APP - SERVICE VARIABLES                          */
 /* -------------------------------------------------------------------------- */
 variable "app-cpu" {
-  type = number
+  type        = number
   description = "APP service CPU allocated to each container - 1cpu = 1024"
-  default= 512
+  default     = 512
 }
 
 variable "app-memory" {
-  type = number
+  type        = number
   description = "APP service RAM/Memory allocated to each container - 1GB Memory = 1024"
-  default = 1024
+  default     = 1024
 }
 
 variable "app-max-capacity" {
-  type = number
+  type        = number
   description = "Maximum Containers limit when the APP service is Scaling Up"
-  default = 2
+  default     = 2
 }
 
 variable "app-min-capacity" {
-  type = number
+  type        = number
   description = "Mininmum Containers limit when the APP service is Scaling Down or Desired Number of Container when idle"
-  default = 2
+  default     = 2
 }
 
 /* -------------------------------------------------------------------------- */
 /*                           DB - SERVICE VARIABLES                           */
 /* -------------------------------------------------------------------------- */
 variable "db-cpu" {
-  type = number
+  type        = number
   description = "DB service CPU allocated to each container - 1cpu = 1024"
-  default= 512
+  default     = 512
 }
 
 variable "db-memory" {
-  type = number
+  type        = number
   description = "DB service RAM/Memory allocated to each container - 1GB Memory = 1024"
-  default = 1024
+  default     = 1024
 }
 
 variable "db-max-capacity" {
-  type = number
+  type        = number
   description = "Maximum Containers limit when the DB service is Scaling Up"
-  default = 1
+  default     = 1
 }
 
 variable "db-min-capacity" {
-  type = number
+  type        = number
   description = "Mininmum Containers limit when the DB service is Scaling Down or Desired Number of Container when idle"
-  default = 1
+  default     = 1
 }
 
 /* -------------------------------------------------------------------------- */

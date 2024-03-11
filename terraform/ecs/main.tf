@@ -56,12 +56,6 @@ resource "aws_ecs_task_definition" "my-ecs-task-app" {
         "name": "app-port"
       }
     ],
-    "mountPoints" : [
-        {
-          "sourceVolume" : "${var.app-name}-efs",
-          "containerPath" : "/var/www"
-        }
-      ],
     "logConfiguration": {
         "logDriver": "awslogs",
         "options": {
@@ -73,16 +67,6 @@ resource "aws_ecs_task_definition" "my-ecs-task-app" {
   }
 ]
 TASK_DEFINITION
-
-  volume {
-    name = "${var.app-name}-efs"
-
-    efs_volume_configuration {
-      file_system_id          = aws_efs_file_system.efs-file-system.id
-      transit_encryption      = "ENABLED"
-      root_directory = "/images"
-    }
-  }
 
   runtime_platform {
     operating_system_family = "LINUX"
@@ -120,12 +104,6 @@ resource "aws_ecs_task_definition" "my-ecs-task-db" {
         "name": "db-port"
       }
     ],
-    "mountPoints" : [
-        {
-          "sourceVolume" : "${var.app-name}-efs",
-          "containerPath" : "/var/lib/mysql"
-        }
-      ],
     "logConfiguration": {
         "logDriver": "awslogs",
         "options": {
@@ -137,15 +115,6 @@ resource "aws_ecs_task_definition" "my-ecs-task-db" {
   }
 ]
 TASK_DEFINITION
-
-  volume {
-    name = "${var.app-name}-efs"
-    efs_volume_configuration {
-      file_system_id          = aws_efs_file_system.efs-file-system.id
-      transit_encryption      = "ENABLED"
-      root_directory = "/database"
-    }
-  }
 
   runtime_platform {
     operating_system_family = "LINUX"
