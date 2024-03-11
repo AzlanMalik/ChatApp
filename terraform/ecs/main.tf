@@ -1,7 +1,7 @@
 # Conditional Statement for Prod and Testing/Staging environment DB and App image urls
 locals {
-  db-image  = var.environment == "prod" ? "${aws_ecr_repository.my-ecr-repo[0].repository_url}:${var.app-name}-app-v265" : var.app-ecr-url
-  app-image = var.environment == "prod" ? "${aws_ecr_repository.my-ecr-repo[0].repository_url}:${var.app-name}-db-v265" : var.app-ecr-url
+  db-image  = var.environment == "prod" ? "${aws_ecr_repository.my-ecr-repo[0].repository_url}:${var.app-name}-app-v266" : var.app-ecr-url
+  app-image = var.environment == "prod" ? "${aws_ecr_repository.my-ecr-repo[0].repository_url}:${var.app-name}-db-v266" : var.app-ecr-url
 }
 
 /* -------------------------------------------------------------------------- */
@@ -56,12 +56,6 @@ resource "aws_ecs_task_definition" "my-ecs-task-app" {
         "name": "app-port"
       }
     ],
-    "mountPoints" : [
-        {
-          "sourceVolume" : "${var.app-name}-efs",
-          "containerPath" : "/var/www/html/php"
-        }
-      ],
     "logConfiguration": {
         "logDriver": "awslogs",
         "options": {
@@ -73,18 +67,6 @@ resource "aws_ecs_task_definition" "my-ecs-task-app" {
   }
 ]
 TASK_DEFINITION
-
-  volume {
-    name = "${var.app-name}-efs"
-
-    efs_volume_configuration {
-      file_system_id          = aws_efs_file_system.efs-file-system.id
-      transit_encryption      = "ENABLED"
-      authorization_config {
-        access_point_id = aws_efs_access_point.efs-access-point-app.id
-      }
-    }
-  }
 
   runtime_platform {
     operating_system_family = "LINUX"
@@ -122,12 +104,6 @@ resource "aws_ecs_task_definition" "my-ecs-task-db" {
         "name": "db-port"
       }
     ],
-    "mountPoints" : [
-        {
-          "sourceVolume" : "${var.app-name}-efs",
-          "containerPath" : "/var/lib/mysql"
-        }
-      ],
     "logConfiguration": {
         "logDriver": "awslogs",
         "options": {
@@ -139,18 +115,6 @@ resource "aws_ecs_task_definition" "my-ecs-task-db" {
   }
 ]
 TASK_DEFINITION
-
-  volume {
-    name = "${var.app-name}-efs"
-
-    efs_volume_configuration {
-      file_system_id          = aws_efs_file_system.efs-file-system.id
-      transit_encryption      = "ENABLED"
-      authorization_config {
-        access_point_id = aws_efs_access_point.efs-access-point-db.id
-      }
-    }
-  }
 
   runtime_platform {
     operating_system_family = "LINUX"

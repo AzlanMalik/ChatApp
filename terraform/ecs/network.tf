@@ -22,9 +22,9 @@ resource "aws_vpc" "my-vpc" {
 /* -------------------------------------------------------------------------- */
 
 resource "aws_security_group" "my-security-group" {
- name        = "${var.app-name}-sg"
- description = "${var.app-name} ${var.environment} security group"
- vpc_id      = aws_vpc.my-vpc.id
+  name        = "${var.app-name}-sg"
+  description = "${var.app-name} ${var.environment} security group"
+  vpc_id      = aws_vpc.my-vpc.id
 
   ingress {
     from_port   = 80
@@ -40,17 +40,16 @@ resource "aws_security_group" "my-security-group" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-
- egress {
+  egress {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
- tags = {
+  tags = {
     Name = "${var.app-name}-sg"
- }
+  }
 }
 
 
@@ -98,7 +97,7 @@ resource "aws_internet_gateway" "ig" {
 
 /* ------------------------ Elastic-IP (eip) for NAT ------------------------ */
 resource "aws_eip" "nat-eip" {
-  domain        = "vpc"
+  domain     = "vpc"
   depends_on = [aws_internet_gateway.ig]
 }
 
@@ -171,11 +170,11 @@ resource "aws_route_table_association" "private-association" {
 /*                         APPLICATION LOAD BALANCER                          */
 /* -------------------------------------------------------------------------- */
 resource "aws_lb" "my-application-load-balancer" {
- name               = "${var.app-name}-${var.environment}-lb"
- internal           = false
- load_balancer_type = "application"
- security_groups    = [aws_security_group.my-security-group.id]
- subnets            = [for subnet in aws_subnet.public-subnet : subnet.id]
+  name               = "${var.app-name}-${var.environment}-lb"
+  internal           = false
+  load_balancer_type = "application"
+  security_groups    = [aws_security_group.my-security-group.id]
+  subnets            = [for subnet in aws_subnet.public-subnet : subnet.id]
 }
 
 resource "aws_lb_target_group" "my-alb-target-group" {
@@ -187,12 +186,12 @@ resource "aws_lb_target_group" "my-alb-target-group" {
 }
 
 resource "aws_lb_listener" "my-lb-listener" {
- load_balancer_arn = aws_lb.my-application-load-balancer.arn
- port              = 80
- protocol          = "HTTP"
+  load_balancer_arn = aws_lb.my-application-load-balancer.arn
+  port              = 80
+  protocol          = "HTTP"
 
- default_action {
+  default_action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.my-alb-target-group.arn
- }
+  }
 }
