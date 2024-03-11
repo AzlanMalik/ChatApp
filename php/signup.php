@@ -8,6 +8,7 @@
     if(!empty($fname) && !empty($lname) && !empty($email) && !empty($password)){
         if(filter_var($email, FILTER_VALIDATE_EMAIL)){
             $sql = mysqli_query($conn, "SELECT * FROM users WHERE email = '{$email}'");
+            if($sql){
             if(mysqli_num_rows($sql) > 0){
                 echo "$email - This email already exist!";
             }else{
@@ -25,7 +26,11 @@
                         if(in_array($img_type, $types) === true){
                             $time = time();
                             $new_img_name = $time.$img_name;
-                            if(move_uploaded_file($tmp_name,"images/".$new_img_name)){
+                            $uploads_dir = __DIR__.'/images/';
+                            if (!is_dir($uploads_dir)) {
+                                mkdir($uploads_dir, 0755, true);
+                                }
+                            if(move_uploaded_file($tmp_name,$uploads_dir.$new_img_name)){
                                 $ran_id = rand(time(), 100000000);
                                 $status = "Active now";
                                 $encrypt_pass = md5($password);
@@ -51,7 +56,7 @@
                         echo "Please upload an image file - jpeg, png, jpg";
                     }
                 }
-            }
+            }}
         }else{
             echo "$email is not a valid email!";
         }

@@ -27,4 +27,4 @@
     }else{
         echo "All input fields are required!";
     }
-?>
+?>  
