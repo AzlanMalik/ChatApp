@@ -39,7 +39,7 @@ resource "aws_efs_access_point" "efs-access-point-app" {
     creation_info {
       owner_gid = 33
       owner_uid = 33
-      permissions = "0775"
+      permissions = "777"
     }
     path = "/images"
   }
@@ -73,10 +73,17 @@ resource "aws_security_group" "my-efs-security-group" {
  description = "${var.app-name} ${var.environment} efs security group"
  vpc_id      = aws_vpc.my-vpc.id
 
- ingress {
-    from_port   = 2049
-    to_port     = 2049
-    protocol    = "tcp"
+#  ingress {
+#     from_port   = 2049
+#     to_port     = 2049
+#     protocol    = "tcp"
+#     cidr_blocks = ["0.0.0.0/0"]
+#  }
+
+ingress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
  }
 

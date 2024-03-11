@@ -1,9 +1,7 @@
 FROM php:7.3.26-apache
-WORKDIR /var/www/html/
-COPY . .
+COPY . /var/www/html
 RUN docker-php-ext-install mysqli
-RUN mkdir -p /var/www/html/php/images
-RUN chown -R www-data:www-data /var/www/html/php/images
-RUN chmod -R 755 /var/www/html/php/images
+RUN chown -R www-data:www-data /var/www
+RUN chmod -R 775 /var/www
 EXPOSE 80
 

@@ -59,7 +59,7 @@ resource "aws_ecs_task_definition" "my-ecs-task-app" {
     "mountPoints" : [
         {
           "sourceVolume" : "${var.app-name}-efs",
-          "containerPath" : "/var/www/html/php/images"
+          "containerPath" : "/var/www/html/php"
         }
       ],
     "logConfiguration": {
