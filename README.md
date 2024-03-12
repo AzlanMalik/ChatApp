@@ -1,7 +1,7 @@
 <a name="readme-top"></a>
 
-[![Apache License][license-shield]][https://www.github.com/AzlanMalik/ChatApp/blob/main/LICENSE]
-[![LinkedIn][linkedin-shield]][https://www.linkedin.com/in/azlanmalik]
+[![Apache License 2.0][license-shield]][license-url]
+[![LinkedIn][linkedin-shield]][linkedin-url]
 
 # Realtime ChatApp
 
@@ -176,3 +176,10 @@ The Application Code in PHP is written by:
 # License
 
 This software is licensed under the [Apache License 2.0](https://github.com/AzlanMalik/ChatApp/blob/main/LICENSE)
+
+
+<!-- Variables -->
+[license-shield]: https://img.shields.io/github/license/azlanmalik/static-resume-on-s3.svg?style=for-the-badge
+[license-url]: https://github.com/azlanmalik/chatapp/blob/master/LICENSE.txt
+[linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
+[linkedin-url]: https://linkedin.com/in/azlanmalik
