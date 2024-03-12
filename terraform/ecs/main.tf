@@ -1,7 +1,7 @@
 # Conditional Statement for Prod and Testing/Staging environment DB and App image urls
 locals {
-  db-image  = var.environment == "prod" ? "${aws_ecr_repository.my-ecr-repo[0].repository_url}:${var.app-name}-app-v266" : var.app-ecr-url
-  app-image = var.environment == "prod" ? "${aws_ecr_repository.my-ecr-repo[0].repository_url}:${var.app-name}-db-v266" : var.app-ecr-url
+  db-image  = var.environment == "prod" ? "${aws_ecr_repository.my-ecr-repo[0].repository_url}:${var.app-name}-app-v1" : var.app-ecr-url
+  app-image = var.environment == "prod" ? "${aws_ecr_repository.my-ecr-repo[0].repository_url}:${var.app-name}-db-v1" : var.app-ecr-url
 }
 
 /* -------------------------------------------------------------------------- */
